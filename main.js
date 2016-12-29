@@ -4,16 +4,15 @@ var readline = require('readline');
 var dataDirectory = process.argv[2] + "/";
 console.log("Starting program: ", process.argv[2]);
 
-var dataFileNames = fs.readdirSync(dataDirectory);
+var dataFileNames = fs.readdirSync(dataDirectory).filter(function(name) {
+    return name.match(/\.txt$/);
+});
 
 var allWaveLengthData = null;
 
 dataFileNames.forEach(function(fileName) {
     fileName = dataDirectory + fileName;
 
-    if (!fileName.match(/\.txt/)) {
-        return;
-    }
     console.log("Processing: " + fileName);
     var lines = fs.readFileSync(fileName, 'utf-8');
     lines = lines.split('\r\n').filter(Boolean);
@@ -40,7 +39,14 @@ allWaveLengthData.unshift([
     "Wavelength (nm)"
 ].concat(dataFileNames));
 
-fs.unlinkSync("output/data.csv");
+var outputFileName = "data.csv";
+try {
+    fs.unlinkSync(outputFileName);
+}
+catch (e) {
+    console.error("Warning: Unable to delete output file.");
+}
+
 allWaveLengthData.forEach(function(line) {
-    fs.appendFileSync("output/data.csv", line.toString() + "\n");
+    fs.appendFileSync(outputFileName, line.toString() + "\n");
 });
