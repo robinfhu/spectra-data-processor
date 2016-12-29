@@ -45,7 +45,7 @@ allWaveLengthData.unshift([
     "Wavelength (nm)"
 ].concat(dataFileNames));
 
-var fullPath = __dirname;
+var fullPath = process.cwd();
 var pathParts = fullPath.split("\\");
 var currentDir = pathParts[pathParts.length-1];
 
