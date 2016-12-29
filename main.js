@@ -1,18 +1,24 @@
 var fs = require('fs');
 var readline = require('readline');
 
-var dataDirectory = process.argv[2] + "/";
-console.log("Starting program: ", process.argv[2]);
+var dataDirectory = process.argv[2] || ".";
 
-var dataFileNames = fs.readdirSync(dataDirectory).filter(function(name) {
+console.log("Begining Program. Moving to directory: ", dataDirectory);
+
+process.chdir(dataDirectory);
+
+var dataFileNames = fs.readdirSync('.').filter(function(name) {
     return name.match(/\.txt$/);
 });
+
+if (dataFileNames.length === 0) {
+    console.error("No txt files found. Exiting.");
+    process.exit(1);
+}
 
 var allWaveLengthData = null;
 
 dataFileNames.forEach(function(fileName) {
-    fileName = dataDirectory + fileName;
-
     console.log("Processing: " + fileName);
     var lines = fs.readFileSync(fileName, 'utf-8');
     lines = lines.split('\r\n').filter(Boolean);
@@ -39,7 +45,12 @@ allWaveLengthData.unshift([
     "Wavelength (nm)"
 ].concat(dataFileNames));
 
-var outputFileName = "data.csv";
+var fullPath = __dirname;
+var pathParts = fullPath.split("\\");
+var currentDir = pathParts[pathParts.length-1];
+
+var outputFileName = currentDir + '.csv';
+
 try {
     fs.unlinkSync(outputFileName);
 }
@@ -50,3 +61,5 @@ catch (e) {
 allWaveLengthData.forEach(function(line) {
     fs.appendFileSync(outputFileName, line.toString() + "\n");
 });
+
+console.log("Finished processing. Output is in: " + outputFileName);
