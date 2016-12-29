@@ -15,7 +15,20 @@ if (dataFileNames.length === 0) {
     process.exit(1);
 }
 
+/*
+THis function takes an array of data, like "1235,0.00014" and returns
+the first and last wavelength values.
+These are then verified across all the files.  If there is a discrepency,
+the program exits with an error.
+*/
+var verifyData = function(data) {
+    var first = data[0].split(','), last = data[data.length-1].split(',');
+    return first[0] + ':' + last[0];
+};
+
 var allWaveLengthData = null;
+var verificationKey = null;
+var dataVerificationFailed = false;
 
 dataFileNames.forEach(function(fileName) {
     console.log("Processing: " + fileName);
@@ -36,8 +49,19 @@ dataFileNames.forEach(function(fileName) {
 
     if(!allWaveLengthData) {
         allWaveLengthData = lines;
+        verificationKey = verifyData(lines);
     }
     else {
+        /*
+        Gets the verification key of the current file, and if it doesn't
+        match the verification key of the first file, mark as failed.
+        Program will exit shortly after.
+        */
+        var newVerifyKey = verifyData(lines);
+        if (newVerifyKey !== verificationKey) {
+            dataVerificationFailed = fileName;
+        }
+
         var dataPointsOnly = lines.map(function(d) {
             return d.split(',')[1];
         });
@@ -48,6 +72,12 @@ dataFileNames.forEach(function(fileName) {
         });
     }
 });
+
+if (dataVerificationFailed) {
+    console.log("Mismatching wavelength found in file: " + dataVerificationFailed);
+    console.error("Program terminating.");
+    process.exit(2);
+}
 
 allWaveLengthData.unshift([
     "Wavelength (nm)"
