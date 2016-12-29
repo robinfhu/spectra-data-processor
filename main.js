@@ -2,7 +2,6 @@ var fs = require('fs');
 var readline = require('readline');
 
 var dataDirectory = process.argv[2] || ".";
-
 console.log("Begining Program. Moving to directory: ", dataDirectory);
 
 process.chdir(dataDirectory);
@@ -22,9 +21,18 @@ dataFileNames.forEach(function(fileName) {
     console.log("Processing: " + fileName);
     var lines = fs.readFileSync(fileName, 'utf-8');
     lines = lines.split('\r\n').filter(Boolean);
-    var beginPoint = lines.indexOf('"Wavelength nm.","Intensity"');
+
+    var beginPoint = lines.findIndex(function(d) {
+        return d.indexOf("Wavelength nm.") !== -1;
+    });
 
     lines = lines.splice(beginPoint+1);
+
+    //Removes any data points that are missing results data, ie, lines that look like "123.0,"
+    lines = lines.filter(function(d) {
+        var value = d.split(',')[1] || '';
+        return value.replace(/\s/g,'');
+    });
 
     if(!allWaveLengthData) {
         allWaveLengthData = lines;
